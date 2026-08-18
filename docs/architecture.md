@@ -1,0 +1,80 @@
+# Arquitectura inicial de Radar Comercial
+
+## Propósito
+
+Definir la frontera técnica inicial del repo `prd-radar-comercial` para que el
+producto tenga una base propia y no dependa de infraestructura compartida ni de
+otros repositorios para arrancar.
+
+## Objetivo del MVP
+
+El MVP técnico debe poder recibir contexto comercial mínimo y producir una
+lectura accionable con:
+
+- resumen del caso;
+- señales relevantes;
+- prioridad o foco sugerido;
+- próximos pasos.
+
+## Fronteras
+
+### Vive en este repo
+
+- implementación técnica del producto;
+- documentación técnica;
+- validaciones locales;
+- futura lógica de procesamiento del radar;
+- futuras interfaces demoables del producto.
+
+### No vive en este repo
+
+- reglas de negocio estables del producto, que viven en `PRD`;
+- proceso comercial de uso y venta, que vive en `SP`;
+- infraestructura compartida de otros productos;
+- backlog operativo en forma de documentación técnica estable.
+
+## Componentes iniciales
+
+- `src/radar_comercial/analysis.py`: núcleo de lectura comercial del caso.
+- `src/radar_comercial/presenter.py`: presentación Markdown del radar.
+- `src/radar_comercial/demo_cli.py`: entrada CLI para smoke/demo local y persistencia opcional.
+- `src/radar_comercial/web.py`: app WSGI local con formulario, ejemplos, export JSON e historial reciente.
+- `src/radar_comercial/web_cli.py`: arranque del servidor web local.
+- `src/radar_comercial/run_store.py`: persistencia local de corridas en JSONL.
+- `examples/`: casos de ejemplo repetibles para demo y validación manual.
+- `data/runs.jsonl`: historial local de corridas del radar.
+- `--format json`: salida estructurada para inspección técnica/demo más operable.
+- `tests/`: validaciones del scaffold y del slice funcional inicial.
+- `docs/`: verdad técnica inicial del repo.
+
+## Estado funcional actual
+
+El repo ya tiene una primera cadena completa local:
+
+1. `CommercialCase.from_dict(...)` normaliza el input comercial mínimo.
+2. `analyze_commercial_case(...)` produce un `RadarReport` tipado.
+3. El motor agrega `priority`, `confidence`, `score_total`, `score_breakdown`,
+   `rationale` y bandas `baja` / `media` / `alta` / `critica`.
+4. `render_radar_report_markdown(...)` transforma el reporte en un artefacto
+   visible para demo.
+5. `demo_cli` permite analizar casos por `stdin`/`--input` y persiste corridas
+   locales en `data/runs.jsonl`.
+6. `web.py` expone una interfaz con selector de ejemplos, export JSON e historial
+   reciente de corridas.
+
+## Evolución esperada
+
+Las siguientes capas podrán agregarse de forma progresiva:
+
+- enriquecimiento del modelo de inputs del radar;
+- scoring comercial más fino y explicable;
+- generación de outputs demoables más ricos;
+- persistencia propia si el producto la requiere;
+- superficies de uso y runtime propios.
+
+## Restricciones
+
+- no depender de bases funcionales de LBIA;
+- no mezclar la demo con infraestructura compartida;
+- no acoplar el MVP a `Aira` en esta etapa;
+- no duplicar en el repo reglas de negocio que pertenecen a la KB.

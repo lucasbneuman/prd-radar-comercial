@@ -1,0 +1,17 @@
+{
+  "company": "EnterpriseCo",
+  "objective": "evitar fuga de oportunidades críticas",
+  "pain_points": [
+    "seguimiento manual",
+    "fuga de oportunidades"
+  ],
+  "signals": [
+    "pidió demo esta semana",
+    "equipo comercial activo",
+    "urgencia de cierre este mes"
+  ],
+  "risks": [
+    "pipeline roto"
+  ],
+  "case_type": "inbound_hot"
+}

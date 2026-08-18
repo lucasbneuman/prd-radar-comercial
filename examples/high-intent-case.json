@@ -1,0 +1,17 @@
+{
+  "company": "Acme",
+  "objective": "ordenar pipeline comercial",
+  "pain_points": [
+    "seguimiento manual",
+    "oportunidades sin prioridad clara"
+  ],
+  "signals": [
+    "pidió demo esta semana",
+    "equipo comercial activo",
+    "dolor operativo explícito"
+  ],
+  "risks": [
+    "no tiene proceso consistente"
+  ],
+  "case_type": "inbound_hot"
+}

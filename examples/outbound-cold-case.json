@@ -1,0 +1,12 @@
+{
+  "company": "Northwind",
+  "objective": "priorizar oportunidades frías",
+  "pain_points": [
+    "seguimiento irregular"
+  ],
+  "signals": [
+    "interés inicial"
+  ],
+  "risks": [],
+  "case_type": "outbound_cold"
+}
