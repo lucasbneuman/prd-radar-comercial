@@ -176,6 +176,12 @@ def _render_report(report: dict | None, case: dict | None = None) -> str:
 
 def app(environ, start_response):
     method = environ.get("REQUEST_METHOD", "GET").upper()
+    path = environ.get("PATH_INFO", "/")
+    if path == "/health":
+        payload = b'{"status":"ok"}'
+        start_response("200 OK", [("Content-Type", "application/json; charset=utf-8"), ("Content-Length", str(len(payload)))])
+        return [payload]
+
     query = parse_qs(environ.get("QUERY_STRING", ""))
     selected_example = query.get("example", [None])[0]
     case = _load_example_case(selected_example)
