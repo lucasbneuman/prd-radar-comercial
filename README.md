@@ -33,9 +33,10 @@ El repo ya incluye un primer slice funcional del MVP:
   slice inicial.
 - `radar_comercial.presenter.render_radar_report_markdown`: presentación del
   output tipado.
-- `radar_comercial.web.app`: mini interfaz web con formulario, carga de
-  ejemplos, import de deals reales desde Brevo, fuentes curadas simuladas
-  (Meet / WhatsApp / llamadas), export JSON y resultado.
+- `radar_comercial.web.app`: mini interfaz web con CRM demo interno (leads y
+  ficha de lead), carga de ejemplos, import de deals reales desde Brevo,
+  fuentes curadas simuladas (Meet / WhatsApp / llamadas), export JSON y
+  resultado.
 - `radar_comercial.web_cli`: servidor local para demo navegable.
 - persistencia local de corridas en `data/runs.jsonl` vía
   `radar_comercial.run_store`.
@@ -45,6 +46,8 @@ El repo ya incluye un primer slice funcional del MVP:
   `--input`, puede persistir historial y emitir Markdown o JSON.
 - integración CRM real con Brevo mediante `BREVO_API_KEY`: lectura de deals,
   resolución de contacto ligado y prefill del caso comercial dentro de la web.
+- CRM demo interno con leads propios, ficha de lead y navegación visible hacia
+  el radar sin depender de un CRM externo.
 - fuentes curadas ficticias para demos de origen alternativo: Meet, WhatsApp y
   llamadas telefónicas.
 - deploy activo en Coolify (Products / production):
@@ -77,6 +80,8 @@ PYTHONPATH=src python3 -m radar_comercial.demo_cli --input examples/high-intent-
 PYTHONPATH=src python3 -m radar_comercial.demo_cli --input examples/outbound-cold-case.json --format json
 PYTHONPATH=src python3 -m radar_comercial.demo_cli --input examples/enterprise-urgent-case.json --format json
 PYTHONPATH=src python3 -m radar_comercial.web_cli --host 127.0.0.1 --port 8008
+curl 'http://127.0.0.1:8008/?lead_id=lead-apex'
+curl 'http://127.0.0.1:8008/?lead_id=lead-apex&source_id=src-apex-whatsapp'
 curl 'http://127.0.0.1:8008/?brevo_deal=6a76213b0dd08f62ca584988'
 curl 'http://127.0.0.1:8008/?curated_source=meet_discovery'
 ```

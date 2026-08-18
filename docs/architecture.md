@@ -38,9 +38,11 @@ lectura accionable con:
 - `src/radar_comercial/analysis.py`: núcleo de lectura comercial del caso.
 - `src/radar_comercial/presenter.py`: presentación Markdown del radar.
 - `src/radar_comercial/demo_cli.py`: entrada CLI para smoke/demo local y persistencia opcional.
-- `src/radar_comercial/web.py`: app WSGI local con formulario, ejemplos, import
-  de deals reales desde Brevo, fuentes curadas simuladas y export JSON.
-- `src/radar_comercial/web_cli.py`: arranque del servidor web local.
+- `src/radar_comercial/web.py`: app WSGI local con CRM demo interno (leads,
+  ficha de lead y navegación hacia el radar), formulario, ejemplos, import de
+  deals reales desde Brevo, fuentes curadas simuladas y export JSON.
+- `src/radar_comercial/crm_demo.py`: dataset y helpers del mini CRM demo
+  interno para leads y fuentes curadas por lead.
 - `src/radar_comercial/run_store.py`: persistencia local de corridas en JSONL.
 - `examples/`: casos de ejemplo repetibles para demo y validación manual.
 - `data/runs.jsonl`: historial local de corridas del radar.
@@ -60,9 +62,9 @@ El repo ya tiene una primera cadena completa local:
    visible para demo.
 5. `demo_cli` permite analizar casos por `stdin`/`--input` y persiste corridas
    locales en `data/runs.jsonl`.
-6. `web.py` expone una interfaz con selector de ejemplos, import de deals reales
-   desde Brevo, fuentes curadas para Meet / WhatsApp / llamadas, export JSON e
-   historial reciente de corridas.
+6. `web.py` expone una interfaz con CRM demo interno, selector de ejemplos,
+   import de deals reales desde Brevo, fuentes curadas para Meet / WhatsApp /
+   llamadas, export JSON e historial reciente de corridas.
 
 ## Evolución esperada
 
@@ -73,6 +75,7 @@ Las siguientes capas podrán agregarse de forma progresiva:
 - generación de outputs demoables más ricos;
 - persistencia propia si el producto la requiere;
 - superficies de uso y runtime propios.
+- CRM demo interno con leads y fuentes propias de la app.
 - integración CRM visible con lectura/import de deals reales.
 - ingesta futura desde fuentes conversacionales reales (Meet, WhatsApp, llamadas).
 

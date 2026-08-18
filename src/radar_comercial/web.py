@@ -8,6 +8,7 @@ from wsgiref.simple_server import make_server
 
 from radar_comercial.analysis import analyze_case
 from radar_comercial.brevo_adapter import list_brevo_deal_summaries, load_brevo_case
+from radar_comercial.crm_demo import get_demo_lead, get_lead_source, list_demo_leads, list_lead_sources, load_demo_case
 from radar_comercial.curated_sources import list_curated_sources, load_curated_case
 from radar_comercial.run_store import DEFAULT_RUNS_PATH, append_run, load_runs
 
@@ -21,21 +22,23 @@ HTML_TEMPLATE = """<!doctype html>
   <title>Radar Comercial</title>
   <style>
     body {{ font-family: Arial, sans-serif; margin: 2rem; background: #0f172a; color: #e2e8f0; }}
-    .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start; }}
     .card {{ background: #111827; padding: 1rem; border-radius: 12px; border: 1px solid #334155; }}
     textarea, input, select {{ width: 100%; margin-top: .35rem; margin-bottom: .75rem; padding: .65rem; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; }}
     button {{ background: #22c55e; color: #052e16; border: 0; padding: .75rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; }}
     .secondary {{ background: #38bdf8; color: #082f49; }}
+    .chip {{ display: inline-block; padding: .2rem .55rem; border-radius: 999px; background: #1e293b; border: 1px solid #475569; margin-right: .4rem; margin-bottom: .4rem; }}
     ul {{ padding-left: 1.2rem; }}
     code {{ background: #0f172a; padding: .1rem .35rem; border-radius: 6px; }}
     a {{ color: #7dd3fc; }}
     hr {{ border-color: #334155; margin: 1rem 0; }}
     .muted {{ color: #94a3b8; }}
+    .link-list li {{ margin-bottom: .5rem; }}
   </style>
 </head>
 <body>
   <h1>Radar Comercial</h1>
-  <p>Demo para convertir contexto comercial mínimo en una lectura accionable, incluyendo CRM real y resúmenes curados.</p>
+  <p>Demo para convertir contexto comercial mínimo en una lectura accionable, incluyendo CRM demo interno, CRM real y resúmenes curados.</p>
   <div class=\"grid\">{content}</div>
 </body>
 </html>"""
@@ -126,6 +129,68 @@ def _render_curated_source_options(selected: str | None) -> list[str]:
     return rendered
 
 
+def _render_crm_demo(selected_lead_id: str | None = None, selected_source_id: str | None = None) -> str:
+    selected_lead = get_demo_lead(selected_lead_id)
+    selected_source = get_lead_source(selected_lead_id, selected_source_id)
+    source_items = list_lead_sources(selected_lead_id)
+    lead_links = []
+    for lead in list_demo_leads():
+        lead_links.append(
+            "<li>"
+            f"<a href='/?lead_id={escape(lead['id'])}'><strong>{escape(lead['company'])}</strong></a>"
+            f" · {escape(lead['stage'])} · {escape(lead['source_channel'])}"
+            f"<br><span class='muted'>{escape(lead['summary'])}</span>"
+            "</li>"
+        )
+
+    detail = "<p class='muted'>Elegí un lead para abrir la ficha y llevarlo al radar.</p>"
+    if selected_lead:
+        chips = "".join(
+            [
+                f"<span class='chip'>{escape(selected_lead['role'])}</span>",
+                f"<span class='chip'>{escape(selected_lead['stage'])}</span>",
+                f"<span class='chip'>{escape(selected_lead['status'])}</span>",
+            ]
+        )
+        source_links = []
+        for source in source_items:
+            source_links.append(
+                "<li>"
+                f"<a href='/?lead_id={escape(selected_lead['id'])}&source_id={escape(source['id'])}'>"
+                f"{escape(source['source_type'])} · {escape(source['label'])}</a>"
+                f"<br><span class='muted'>{escape(source['summary'])}</span>"
+                "</li>"
+            )
+        detail = f"""
+        <h3>Ficha del lead</h3>
+        <p><strong>{escape(selected_lead['company'])}</strong> · {escape(selected_lead['name'])}</p>
+        <p class='muted'>{escape(selected_lead['summary'])}</p>
+        <p>{chips}</p>
+        <p><strong>Última actividad:</strong> {escape(selected_lead['last_activity_at'])}</p>
+        <p><strong>Objetivo:</strong> {escape(selected_lead['objective'])}</p>
+        <h4>Fuentes disponibles</h4>
+        <ul class='link-list'>{''.join(source_links)}</ul>
+        <p><a href='/?lead_id={escape(selected_lead['id'])}'>Ver informe general</a></p>
+        """
+        if selected_source:
+            detail += f"""
+            <hr>
+            <h4>Fuente enfocada: {escape(selected_source['source_type'])}</h4>
+            <p>{escape(selected_source['summary'])}</p>
+            """
+
+    return f"""
+    <section class=\"card\">
+      <h2>CRM demo interno</h2>
+      <p class=\"muted\">Leads demo propios de Radar para una narrativa controlada y repetible.</p>
+      <h3>Leads demo</h3>
+      <ul class=\"link-list\">{''.join(lead_links)}</ul>
+      <hr>
+      {detail}
+    </section>
+    """
+
+
 def _render_form(case: dict | None = None, *, selected_example: str | None = None, selected_brevo_deal: str | None = None, selected_curated_source: str | None = None) -> str:
     case = case or _blank_case()
     source_label = escape(case.get("source_label", "Carga manual"))
@@ -139,6 +204,14 @@ def _render_form(case: dict | None = None, *, selected_example: str | None = Non
           <select name=\"example\">{''.join(_render_example_options(selected_example))}</select>
         </label>
         <button class=\"secondary\" type=\"submit\">Cargar ejemplo</button>
+      </form>
+      <hr>
+      <form method=\"get\">
+        <h3>CRM demo</h3>
+        <label>Lead demo
+          <input name=\"lead_id\" value=\"{escape(case.get('lead_id', ''))}\" placeholder=\"lead-apex\">
+        </label>
+        <button class=\"secondary\" type=\"submit\">Abrir lead</button>
       </form>
       <hr>
       <form method=\"get\">
@@ -250,8 +323,12 @@ def app(environ, start_response):
     selected_example = query.get("example", [None])[0]
     selected_brevo_deal = query.get("brevo_deal", [None])[0]
     selected_curated_source = query.get("curated_source", [None])[0]
+    selected_lead_id = query.get("lead_id", [None])[0]
+    selected_source_id = query.get("source_id", [None])[0]
 
     case = _load_example_case(selected_example)
+    if selected_lead_id:
+        case = load_demo_case(selected_lead_id, selected_source_id) or case
     if selected_brevo_deal:
         case = load_brevo_case(selected_brevo_deal) or case
     if selected_curated_source:
@@ -275,7 +352,8 @@ def app(environ, start_response):
             return [payload]
 
     html = HTML_TEMPLATE.format(
-        content=_render_form(
+        content=_render_crm_demo(selected_lead_id, selected_source_id)
+        + _render_form(
             case,
             selected_example=selected_example,
             selected_brevo_deal=selected_brevo_deal,
