@@ -42,6 +42,8 @@ El repo ya incluye un primer slice funcional del MVP:
   `rationale` y bandas `baja` / `media` / `alta` / `critica`.
 - `python -m radar_comercial.demo_cli`: recibe un caso JSON por `stdin` o
   `--input`, puede persistir historial y emitir Markdown o JSON.
+- deploy activo en Coolify (Products / production):
+  `http://yksccckkgksckggkw0cggg88.76.13.170.240.sslip.io`.
 
 ## Requisitos locales
 
@@ -82,5 +84,5 @@ PYTHONPATH=src python3 -m radar_comercial.web_cli --host 127.0.0.1 --port 8008
 
 - No incluye integración obligatoria con `Aira`.
 - No usa infraestructura compartida de otros productos.
-- No define todavía runtime productivo ni persistencia endurecida.
+- La persistencia productiva sigue siendo básica (`runs.jsonl`) y no está endurecida.
 - No reemplaza el proceso comercial de `SP`.
