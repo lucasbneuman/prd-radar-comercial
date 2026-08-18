@@ -7,8 +7,9 @@ from urllib.parse import parse_qs
 from wsgiref.simple_server import make_server
 
 from radar_comercial.analysis import analyze_case
+from radar_comercial.brevo_adapter import list_brevo_deal_summaries, load_brevo_case
+from radar_comercial.curated_sources import list_curated_sources, load_curated_case
 from radar_comercial.run_store import DEFAULT_RUNS_PATH, append_run, load_runs
-
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 EXAMPLES_DIR = BASE_DIR / "examples"
@@ -28,11 +29,13 @@ HTML_TEMPLATE = """<!doctype html>
     ul {{ padding-left: 1.2rem; }}
     code {{ background: #0f172a; padding: .1rem .35rem; border-radius: 6px; }}
     a {{ color: #7dd3fc; }}
+    hr {{ border-color: #334155; margin: 1rem 0; }}
+    .muted {{ color: #94a3b8; }}
   </style>
 </head>
 <body>
   <h1>Radar Comercial</h1>
-  <p>Demo local para convertir contexto comercial mínimo en una lectura accionable.</p>
+  <p>Demo para convertir contexto comercial mínimo en una lectura accionable, incluyendo CRM real y resúmenes curados.</p>
   <div class=\"grid\">{content}</div>
 </body>
 </html>"""
@@ -54,7 +57,23 @@ def _load_example_case(name: str | None) -> dict | None:
     path = EXAMPLES_DIR / name
     if not path.exists() or path.parent != EXAMPLES_DIR:
         return None
-    return json.loads(path.read_text(encoding="utf-8"))
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload.setdefault("source_kind", "example")
+    payload.setdefault("source_label", f"Ejemplo local · {name}")
+    return payload
+
+
+def _blank_case() -> dict:
+    return {
+        "company": "",
+        "objective": "",
+        "pain_points": [],
+        "signals": [],
+        "risks": [],
+        "case_type": "generic",
+        "source_kind": "manual",
+        "source_label": "Carga manual",
+    }
 
 
 def _build_case(form: dict[str, list[str]]) -> dict:
@@ -65,6 +84,8 @@ def _build_case(form: dict[str, list[str]]) -> dict:
         "signals": _split_lines(form.get("signals", [""])[0]),
         "risks": _split_lines(form.get("risks", [""])[0]),
         "case_type": form.get("case_type", ["generic"])[0].strip() or "generic",
+        "source_kind": form.get("source_kind", ["manual"])[0].strip() or "manual",
+        "source_label": form.get("source_label", ["Carga manual"])[0].strip() or "Carga manual",
     }
 
 
@@ -85,19 +106,60 @@ def _render_example_options(selected: str | None) -> list[str]:
     return rendered
 
 
-def _render_form(case: dict | None = None, *, selected_example: str | None = None) -> str:
-    case = case or {"company": "", "objective": "", "pain_points": [], "signals": [], "risks": [], "case_type": "generic"}
+def _render_brevo_options(selected: str | None) -> list[str]:
+    rendered = ['<option value="">seleccionar deal real</option>']
+    for item in list_brevo_deal_summaries(limit=10):
+        deal_id = item.get("id", "")
+        label = item.get("label", deal_id)
+        flag = " selected" if deal_id == selected else ""
+        rendered.append(f'<option value="{escape(deal_id)}"{flag}>{escape(label)}</option>')
+    return rendered
+
+
+def _render_curated_source_options(selected: str | None) -> list[str]:
+    rendered = ['<option value="">seleccionar resumen curado</option>']
+    for item in list_curated_sources():
+        source_id = item.get("id", "")
+        label = item.get("label", source_id)
+        flag = " selected" if source_id == selected else ""
+        rendered.append(f'<option value="{escape(source_id)}"{flag}>{escape(label)}</option>')
+    return rendered
+
+
+def _render_form(case: dict | None = None, *, selected_example: str | None = None, selected_brevo_deal: str | None = None, selected_curated_source: str | None = None) -> str:
+    case = case or _blank_case()
+    source_label = escape(case.get("source_label", "Carga manual"))
+    source_kind = escape(case.get("source_kind", "manual"))
     return f"""
     <section class=\"card\">
       <h2>Input comercial</h2>
+      <p class=\"muted\">Origen actual: <strong>{source_label}</strong></p>
       <form method=\"get\">
-        <label>Ejemplo
+        <label>Ejemplo local
           <select name=\"example\">{''.join(_render_example_options(selected_example))}</select>
         </label>
         <button class=\"secondary\" type=\"submit\">Cargar ejemplo</button>
       </form>
       <hr>
+      <form method=\"get\">
+        <h3>Cargar desde Brevo</h3>
+        <label>Deal real CRM
+          <select name=\"brevo_deal\">{''.join(_render_brevo_options(selected_brevo_deal))}</select>
+        </label>
+        <button class=\"secondary\" type=\"submit\">Importar deal</button>
+      </form>
+      <hr>
+      <form method=\"get\">
+        <h3>Resumen curado</h3>
+        <label>Fuente simulada
+          <select name=\"curated_source\">{''.join(_render_curated_source_options(selected_curated_source))}</select>
+        </label>
+        <button class=\"secondary\" type=\"submit\">Cargar resumen curado</button>
+      </form>
+      <hr>
       <form method=\"post\">
+        <input type=\"hidden\" name=\"source_kind\" value=\"{source_kind}\">
+        <input type=\"hidden\" name=\"source_label\" value=\"{source_label}\">
         <label>Empresa<input name=\"company\" value=\"{escape(case['company'])}\" required></label>
         <label>Objetivo<input name=\"objective\" value=\"{escape(case['objective'])}\" required></label>
         <label>Pain points<textarea name=\"pain_points\" rows=\"5\">{escape(chr(10).join(case['pain_points']))}</textarea></label>
@@ -148,10 +210,12 @@ def _render_report(report: dict | None, case: dict | None = None) -> str:
     steps = "".join(f"<li>{escape(item)}</li>" for item in report["next_steps"])
     breakdown = "".join(f"<li>{escape(item)}</li>" for item in report["score_breakdown"])
     export_json = escape(json.dumps(report, ensure_ascii=False, indent=2))
+    source_label = escape(report.get("source_label", case.get("source_label", "Carga manual") if case else "Carga manual"))
 
     return f"""
     <section class=\"card\">
       <h2>Resultado</h2>
+      <p><strong>Origen:</strong> {source_label}</p>
       <p><strong>Resumen:</strong> {escape(report['summary'])}</p>
       <p><strong>Prioridad:</strong> {escape(report['priority'])}</p>
       <p><strong>Tipo de caso:</strong> <code>{escape(report['case_type'])}</code></p>
@@ -184,7 +248,14 @@ def app(environ, start_response):
 
     query = parse_qs(environ.get("QUERY_STRING", ""))
     selected_example = query.get("example", [None])[0]
+    selected_brevo_deal = query.get("brevo_deal", [None])[0]
+    selected_curated_source = query.get("curated_source", [None])[0]
+
     case = _load_example_case(selected_example)
+    if selected_brevo_deal:
+        case = load_brevo_case(selected_brevo_deal) or case
+    if selected_curated_source:
+        case = load_curated_case(selected_curated_source) or case
     report = None
 
     if method == "POST":
@@ -193,14 +264,25 @@ def app(environ, start_response):
         form = parse_qs(body)
         case = _build_case(form)
         report = analyze_case(case)
-        append_run(DEFAULT_RUNS_PATH, case=case, report=report, source="web")
+        report["source_kind"] = case.get("source_kind", "manual")
+        report["source_label"] = case.get("source_label", "Carga manual")
+        source = case.get("source_label") or case.get("source_kind") or "web"
+        append_run(DEFAULT_RUNS_PATH, case=case, report=report, source=source)
         response_format = form.get("response_format", ["html"])[0]
         if response_format == "json":
             payload = json.dumps(report, ensure_ascii=False, indent=2).encode("utf-8")
             start_response("200 OK", [("Content-Type", "application/json; charset=utf-8"), ("Content-Length", str(len(payload)))])
             return [payload]
 
-    html = HTML_TEMPLATE.format(content=_render_form(case, selected_example=selected_example) + _render_report(report, case))
+    html = HTML_TEMPLATE.format(
+        content=_render_form(
+            case,
+            selected_example=selected_example,
+            selected_brevo_deal=selected_brevo_deal,
+            selected_curated_source=selected_curated_source,
+        )
+        + _render_report(report, case)
+    )
     payload = html.encode("utf-8")
     start_response("200 OK", [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(payload)))])
     return [payload]
