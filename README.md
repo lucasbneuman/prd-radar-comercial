@@ -36,7 +36,8 @@ El repo ya incluye un primer slice funcional del MVP:
 - `radar_comercial.web.app`: mini interfaz web con CRM demo interno (leads,
   ficha de lead e informes general/por fuente), carga de ejemplos, import de
   deals reales desde Brevo, fuentes curadas simuladas (Meet / WhatsApp /
-  llamadas), export JSON y resultado, con narrativa LLM opcional por env.
+  llamadas), export JSON y resultado, con narrativa LLM opcional por env y
+  consolidación orquestada por fuente para el informe general.
 - `examples/crm-demo-dataset.json`: dataset versionado del mini CRM demo con
   leads y fuentes curadas reutilizables para UI, tests y futuros informes.
 - `radar_comercial.web_cli`: servidor local para demo navegable.
@@ -55,6 +56,8 @@ El repo ya incluye un primer slice funcional del MVP:
   el radar sin depender de un CRM externo.
 - informes navegables desde el CRM demo: general por lead y por fuente
   específica con `view=report`.
+- orquestación visible del informe general: análisis por fuente + consolidación
+  final del lead, con backend evolutivo hacia LangGraph.
 - dataset demo versionado en `examples/crm-demo-dataset.json` con leads,
   fuentes y taxonomías reutilizables para demo y validación.
 - fuentes curadas ficticias para demos de origen alternativo: Meet, WhatsApp y
@@ -117,6 +120,10 @@ curl 'http://127.0.0.1:8008/?lead_id=lead-apex'
 curl 'http://127.0.0.1:8008/?lead_id=lead-apex&source_id=src-apex-whatsapp'
 curl 'http://127.0.0.1:8008/?lead_id=lead-apex&view=report'
 curl 'http://127.0.0.1:8008/?lead_id=lead-apex&source_id=src-apex-whatsapp&view=report'
+PYTHONPATH=src python3 - <<'PY'
+from radar_comercial.report_orchestration import orchestrate_demo_lead_reports
+print(orchestrate_demo_lead_reports('lead-apex')['orchestration_backend'])
+PY
 curl 'http://127.0.0.1:8008/?brevo_deal=6a76213b0dd08f62ca584988'
 curl 'http://127.0.0.1:8008/?curated_source=meet_discovery'
 ```

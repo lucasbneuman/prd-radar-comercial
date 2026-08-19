@@ -62,6 +62,9 @@ class CrmDemoViewTest(unittest.TestCase):
         self.assertIn("Resultado", response)
         self.assertIn("CRM demo · Apex Analytics", response)
         self.assertIn("Prioridad:", response)
+        self.assertIn("Orquestación de fuentes", response)
+        self.assertIn("Meet · Meet discovery", response)
+        self.assertIn("WhatsApp · WhatsApp follow-up", response)
 
     def test_get_can_render_source_report_from_demo_lead(self):
         status, headers, response = self.run_app(query_string="lead_id=lead-apex&source_id=src-apex-whatsapp&view=report")

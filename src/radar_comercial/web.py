@@ -10,6 +10,7 @@ from radar_comercial.analysis import analyze_case
 from radar_comercial.brevo_adapter import list_brevo_deal_summaries, load_brevo_case
 from radar_comercial.crm_demo import get_demo_lead, get_lead_source, list_demo_leads, list_lead_sources, load_demo_case
 from radar_comercial.curated_sources import list_curated_sources, load_curated_case
+from radar_comercial.report_orchestration import orchestrate_demo_lead_reports
 from radar_comercial.run_store import DEFAULT_RUNS_PATH, append_run, load_runs
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -272,7 +273,7 @@ def _render_recent_runs() -> str:
     return "<ul>" + "".join(items) + "</ul>"
 
 
-def _render_report(report: dict | None, case: dict | None = None, report_title: str | None = None) -> str:
+def _render_report(report: dict | None, case: dict | None = None, report_title: str | None = None, orchestration: dict | None = None) -> str:
     if not report:
         return f"""
         <section class=\"card\">
@@ -296,6 +297,22 @@ def _render_report(report: dict | None, case: dict | None = None, report_title: 
         llm_html = f"<p><strong>Narrativa LLM:</strong> {provider} · <code>{model}</code></p>"
 
     title_html = f'<p class="muted">{escape(report_title)}</p>' if report_title else ''
+    orchestration_html = ""
+    if orchestration:
+        items = []
+        for item in orchestration.get("source_reports", []):
+            source = item["source"]
+            source_report = item["report"]
+            items.append(
+                f"<li><strong>{escape(source['source_type'])} · {escape(source['label'])}</strong>"
+                f" · prioridad {escape(source_report['priority'])}"
+                f"<br><span class='muted'>{escape(source_report['summary'])}</span></li>"
+            )
+        backend = escape(orchestration.get("orchestration_backend", "linear"))
+        orchestration_html = (
+            f"<h3>Orquestación de fuentes</h3><p class='muted'>backend: <code>{backend}</code></p>"
+            + ("<ul>" + "".join(items) + "</ul>" if items else "<p class='muted'>Sin fuentes disponibles.</p>")
+        )
 
     return f"""
     <section class=\"card\">
@@ -319,6 +336,7 @@ def _render_report(report: dict | None, case: dict | None = None, report_title: 
       <ul>{steps}</ul>
       <h3>Export JSON</h3>
       <pre>{export_json}</pre>
+      {orchestration_html}
       <h3>Últimas corridas</h3>
       {_render_recent_runs()}
     </section>
@@ -350,9 +368,18 @@ def app(environ, start_response):
         case = load_curated_case(selected_curated_source) or case
     report = None
     report_title = None
+    orchestration = None
 
     if method == "GET" and selected_view == "report" and case:
-        report = analyze_case(case)
+        if selected_lead_id and not selected_source_id:
+            orchestration = orchestrate_demo_lead_reports(selected_lead_id)
+            if orchestration:
+                case = orchestration["consolidated_case"]
+                report = orchestration["consolidated_report"]
+            else:
+                report = analyze_case(case)
+        else:
+            report = analyze_case(case)
         report["source_kind"] = case.get("source_kind", "manual")
         report["source_label"] = case.get("source_label", "Carga manual")
         report_title = "Informe por fuente" if selected_source_id else "Informe general del lead"
@@ -381,7 +408,7 @@ def app(environ, start_response):
             selected_brevo_deal=selected_brevo_deal,
             selected_curated_source=selected_curated_source,
         )
-        + _render_report(report, case, report_title)
+        + _render_report(report, case, report_title, orchestration)
     )
     payload = html.encode("utf-8")
     start_response("200 OK", [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(payload)))])
