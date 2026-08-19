@@ -139,7 +139,7 @@ def _render_crm_demo(selected_lead_id: str | None = None, selected_source_id: st
         lead_links.append(
             "<li>"
             f"<a href='/?lead_id={escape(lead['id'])}'><strong>{escape(lead['company'])}</strong></a>"
-            f" · {escape(lead['stage'])} · {escape(lead['source_channel'])}"
+            f" · {escape(lead['stage'])} · {escape(lead.get('source_channel') or lead.get('primary_channel') or 'Canal no definido')}"
             f"<br><span class='muted'>{escape(lead['summary'])}</span>"
             "</li>"
         )
