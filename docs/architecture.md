@@ -48,7 +48,8 @@ lectura accionable con:
 - `src/radar_comercial/llm_provider.py`: providers configurables para
   enriquecer `summary`/`rationale` con fallback seguro.
 - `src/radar_comercial/report_orchestration.py`: orquestación de informes por
-  fuente y consolidación general, con backend evolutivo hacia LangGraph.
+  fuente, consolidación general y construcción de vistas Comercial / Directiva,
+  con backend evolutivo hacia LangGraph.
 - `src/radar_comercial/run_store.py`: persistencia local de corridas en JSONL.
 - `examples/`: casos de ejemplo repetibles para demo y validación manual.
 - `data/runs.jsonl`: historial local de corridas del radar.
@@ -75,8 +76,9 @@ El repo ya tiene una primera cadena completa local:
 7. `llm_provider.py` permite enriquecer `summary` y `rationale` con providers
    OpenAI-compatible configurados por entorno, con fallback silencioso al motor
    rule-based cuando falta config o la llamada falla.
-8. `report_orchestration.py` ejecuta el paso fuente por fuente y luego la
-   consolidación general del lead, dejando un backend actual `linear` listo para
+8. `report_orchestration.py` ejecuta el paso fuente por fuente, la
+   consolidación general del lead y la separación de salida entre `Vista
+   Comercial` y `Vista Directiva`, dejando un backend actual `linear` listo para
    evolucionar a LangGraph cuando se incorpore la dependencia real.
 
 ## Evolución esperada

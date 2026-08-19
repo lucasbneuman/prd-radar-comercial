@@ -10,7 +10,7 @@ from radar_comercial.analysis import analyze_case
 from radar_comercial.brevo_adapter import list_brevo_deal_summaries, load_brevo_case
 from radar_comercial.crm_demo import get_demo_lead, get_lead_source, list_demo_leads, list_lead_sources, load_demo_case
 from radar_comercial.curated_sources import list_curated_sources, load_curated_case
-from radar_comercial.report_orchestration import orchestrate_demo_lead_reports
+from radar_comercial.report_orchestration import build_view_models_for_lead, orchestrate_demo_lead_reports
 from radar_comercial.run_store import DEFAULT_RUNS_PATH, append_run, load_runs
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -273,7 +273,7 @@ def _render_recent_runs() -> str:
     return "<ul>" + "".join(items) + "</ul>"
 
 
-def _render_report(report: dict | None, case: dict | None = None, report_title: str | None = None, orchestration: dict | None = None) -> str:
+def _render_report(report: dict | None, case: dict | None = None, report_title: str | None = None, orchestration: dict | None = None, audience: str = "commercial", views: dict | None = None) -> str:
     if not report:
         return f"""
         <section class=\"card\">
@@ -297,6 +297,40 @@ def _render_report(report: dict | None, case: dict | None = None, report_title: 
         llm_html = f"<p><strong>Narrativa LLM:</strong> {provider} · <code>{model}</code></p>"
 
     title_html = f'<p class="muted">{escape(report_title)}</p>' if report_title else ''
+    selected_view = (views or {}).get(audience, {})
+    audience_switch_html = ""
+    audience_panel_html = ""
+    if report_title == "Informe general del lead" and views:
+        audience_switch_html = (
+            "<p>"
+            "<span class='chip'>Vista Comercial</span> "
+            "<span class='chip'>Vista Directiva</span>"
+            "</p>"
+        )
+        if audience == "executive":
+            source_items = "".join(
+                f"<li><strong>{escape(item['source_type'])} · {escape(item['label'])}</strong><br><span class='muted'>{escape(item['summary'])}</span></li>"
+                for item in selected_view.get("source_overview", [])
+            )
+            audience_panel_html = (
+                f"<h3>{escape(selected_view.get('title', 'Vista Directiva'))}</h3>"
+                f"<p><strong>Resumen ejecutivo:</strong> {escape(selected_view.get('headline', ''))}</p>"
+                f"<p><strong>Decisión sugerida:</strong> {escape(selected_view.get('decision_note', ''))}</p>"
+                f"<h4>Señales consolidadas</h4><ul>{source_items}</ul>"
+            )
+        else:
+            step_items = "".join(f"<li>{escape(item)}</li>" for item in selected_view.get("next_steps", []))
+            priority_items = "".join(
+                f"<li><strong>{escape(item['source_type'])} · {escape(item['label'])}</strong> · prioridad {escape(item['priority'])}</li>"
+                for item in selected_view.get("source_priorities", [])
+            )
+            audience_panel_html = (
+                f"<h3>{escape(selected_view.get('title', 'Vista Comercial'))}</h3>"
+                f"<p><strong>Foco operativo:</strong> {escape(selected_view.get('focus', ''))}</p>"
+                f"<h4>Prioridades por fuente</h4><ul>{priority_items}</ul>"
+                f"<h4>Próximos pasos operativos</h4><ul>{step_items}</ul>"
+            )
+
     orchestration_html = ""
     if orchestration:
         items = []
@@ -318,6 +352,7 @@ def _render_report(report: dict | None, case: dict | None = None, report_title: 
     <section class=\"card\">
       <h2>Resultado</h2>
       {title_html}
+      {audience_switch_html}
       <p><strong>Origen:</strong> {source_label}</p>
       {llm_html}
       <p><strong>Resumen:</strong> {escape(report['summary'])}</p>
@@ -336,6 +371,7 @@ def _render_report(report: dict | None, case: dict | None = None, report_title: 
       <ul>{steps}</ul>
       <h3>Export JSON</h3>
       <pre>{export_json}</pre>
+      {audience_panel_html}
       {orchestration_html}
       <h3>Últimas corridas</h3>
       {_render_recent_runs()}
@@ -358,6 +394,7 @@ def app(environ, start_response):
     selected_lead_id = query.get("lead_id", [None])[0]
     selected_source_id = query.get("source_id", [None])[0]
     selected_view = query.get("view", [None])[0]
+    selected_audience = query.get("audience", ["commercial"])[0] or "commercial"
 
     case = _load_example_case(selected_example)
     if selected_lead_id:
@@ -369,10 +406,12 @@ def app(environ, start_response):
     report = None
     report_title = None
     orchestration = None
+    report_views = None
 
     if method == "GET" and selected_view == "report" and case:
         if selected_lead_id and not selected_source_id:
-            orchestration = orchestrate_demo_lead_reports(selected_lead_id)
+            report_views = build_view_models_for_lead(selected_lead_id)
+            orchestration = report_views["orchestration"] if report_views else orchestrate_demo_lead_reports(selected_lead_id)
             if orchestration:
                 case = orchestration["consolidated_case"]
                 report = orchestration["consolidated_report"]
@@ -408,7 +447,7 @@ def app(environ, start_response):
             selected_brevo_deal=selected_brevo_deal,
             selected_curated_source=selected_curated_source,
         )
-        + _render_report(report, case, report_title, orchestration)
+        + _render_report(report, case, report_title, orchestration, selected_audience, report_views["views"] if report_views else None)
     )
     payload = html.encode("utf-8")
     start_response("200 OK", [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(payload)))])

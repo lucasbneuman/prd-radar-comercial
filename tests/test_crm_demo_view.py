@@ -62,6 +62,8 @@ class CrmDemoViewTest(unittest.TestCase):
         self.assertIn("Resultado", response)
         self.assertIn("CRM demo · Apex Analytics", response)
         self.assertIn("Prioridad:", response)
+        self.assertIn("Vista Comercial", response)
+        self.assertIn("Vista Directiva", response)
         self.assertIn("Orquestación de fuentes", response)
         self.assertIn("Meet · Meet discovery", response)
         self.assertIn("WhatsApp · WhatsApp follow-up", response)
@@ -74,6 +76,15 @@ class CrmDemoViewTest(unittest.TestCase):
         self.assertIn("CRM demo · WhatsApp · Apex Analytics", response)
         self.assertIn("WhatsApp", response)
         self.assertIn("Prioridad:", response)
+
+    def test_get_can_render_executive_view_from_demo_lead(self):
+        status, headers, response = self.run_app(query_string="lead_id=lead-apex&view=report&audience=executive")
+
+        self.assertEqual(status, "200 OK")
+        self.assertIn("Vista Directiva", response)
+        self.assertIn("Decisión sugerida", response)
+        self.assertIn("Resumen ejecutivo", response)
+        self.assertNotIn("Próximos pasos operativos", response)
 
 
 if __name__ == "__main__":
