@@ -1,0 +1,177 @@
+{
+  "leads": [
+    {
+      "id": "lead-apex",
+      "name": "Paula Ibarra",
+      "company": "Apex Analytics",
+      "role": "Head of Sales",
+      "source_channel": "Inbound + WhatsApp",
+      "stage": "Discovery",
+      "owner": "Lucas",
+      "status": "activo",
+      "last_activity_at": "2026-08-18",
+      "objective": "ordenar pipeline y seguimiento comercial",
+      "summary": "Operación trabada por seguimiento manual y baja visibilidad sobre oportunidades calientes.",
+      "case_type": "inbound_hot",
+      "segment": "B2B SaaS"
+    },
+    {
+      "id": "lead-nexa",
+      "name": "Tomás Suárez",
+      "company": "Nexa Studio",
+      "role": "Founder",
+      "source_channel": "Llamada",
+      "stage": "Calificación",
+      "owner": "Lucas",
+      "status": "activo",
+      "last_activity_at": "2026-08-17",
+      "objective": "priorizar oportunidades y formalizar próximos pasos",
+      "summary": "Equipo chico con crecimiento comercial desordenado y necesidad de lectura ejecutiva semanal.",
+      "case_type": "outbound_warm",
+      "segment": "Servicios B2B"
+    },
+    {
+      "id": "lead-orbit",
+      "name": "Valentina Costa",
+      "company": "Orbit Partners",
+      "role": "Revenue Ops",
+      "source_channel": "Meet",
+      "stage": "Propuesta",
+      "owner": "Lucas",
+      "status": "seguimiento",
+      "last_activity_at": "2026-08-16",
+      "objective": "tener informes comerciales por cuenta y señales de riesgo",
+      "summary": "Necesitan unificar insights de reuniones y seguimiento comercial en una sola capa de lectura.",
+      "case_type": "outbound_warm",
+      "segment": "Consultoría comercial"
+    },
+    {
+      "id": "lead-quanta",
+      "name": "Marina Paz",
+      "company": "Quanta Growth",
+      "role": "CEO",
+      "source_channel": "Manual + WhatsApp",
+      "stage": "Seguimiento ejecutivo",
+      "owner": "Lucas",
+      "status": "espera definición",
+      "last_activity_at": "2026-08-15",
+      "objective": "leer salud comercial por cuenta y sostener reporting semanal para dirección",
+      "summary": "La dirección pide visibilidad ejecutiva sin perder detalle operativo de los vendedores.",
+      "case_type": "inbound_hot",
+      "segment": "Agencia digital"
+    }
+  ],
+  "sources": {
+    "lead-apex": [
+      {
+        "id": "src-apex-meet",
+        "source_type": "Meet",
+        "label": "Meet discovery",
+        "summary": "Descubrieron cuellos de botella de seguimiento, falta de prioridad compartida y reporting disperso.",
+        "pain_points": [
+          "seguimiento manual en planillas",
+          "no distinguen leads calientes de tibios",
+          "la jefatura no ve bloqueos a tiempo"
+        ],
+        "signals": [
+          "3 vendedores con pipeline activo",
+          "quieren ordenar discovery y follow-up esta semana",
+          "ven valor en una demo visible para dirección y operación"
+        ],
+        "risks": [
+          "si no aterrizan próximos pasos rápido pierden momentum"
+        ]
+      },
+      {
+        "id": "src-apex-whatsapp",
+        "source_type": "WhatsApp",
+        "label": "WhatsApp follow-up",
+        "summary": "Pidió propuesta aterrizada para 3 vendedores y una lectura ejecutiva simple para dirección.",
+        "pain_points": [
+          "las conversaciones quedan dispersas",
+          "no documentan contexto entre interacciones"
+        ],
+        "signals": [
+          "pidió propuesta aterrizada para 3 vendedores",
+          "quieren comparar vista comercial y vista directiva"
+        ],
+        "risks": [
+          "si la demo se ve muy técnica la dirección no compra el valor"
+        ]
+      }
+    ],
+    "lead-nexa": [
+      {
+        "id": "src-nexa-call",
+        "source_type": "Llamada",
+        "label": "Llamada de calificación",
+        "summary": "Founder vende solo, tiene varias oportunidades abiertas y cero ritual de seguimiento.",
+        "pain_points": [
+          "seguimiento reactivo",
+          "sin criterio claro de prioridad"
+        ],
+        "signals": [
+          "quieren proceso simple, no otro CRM complejo",
+          "valoran resúmenes accionables rápidos"
+        ],
+        "risks": [
+          "capacidad operativa reducida para implementar cambios grandes"
+        ]
+      }
+    ],
+    "lead-orbit": [
+      {
+        "id": "src-orbit-meet",
+        "source_type": "Meet",
+        "label": "Meet de propuesta",
+        "summary": "Revenue Ops quiere consolidar señales de cuenta para dar visibilidad al director comercial.",
+        "pain_points": [
+          "insights repartidos entre reuniones y notas",
+          "sin lectura consolidada por cuenta"
+        ],
+        "signals": [
+          "ya tienen operación comercial con disciplina básica",
+          "necesitan vista ejecutiva por oportunidad"
+        ],
+        "risks": [
+          "si no ven consolidación real puede parecer otra capa manual"
+        ]
+      }
+    ],
+    "lead-quanta": [
+      {
+        "id": "src-quanta-whatsapp",
+        "source_type": "WhatsApp",
+        "label": "WhatsApp dirección",
+        "summary": "La CEO pidió una vista muy breve para comité y un siguiente paso concreto por oportunidad.",
+        "pain_points": [
+          "dirección recibe demasiados detalles operativos",
+          "no tienen síntesis ejecutiva semanal"
+        ],
+        "signals": [
+          "pidieron diferenciar vista comercial y directiva",
+          "quieren una lectura consolidada por cuenta"
+        ],
+        "risks": [
+          "si el producto no aterriza el siguiente paso, se pierde en reporting"
+        ]
+      },
+      {
+        "id": "src-quanta-manual",
+        "source_type": "Manual",
+        "label": "Nota interna comercial",
+        "summary": "Hay presión para no sumar otra herramienta pesada al equipo comercial.",
+        "pain_points": [
+          "rechazo a CRMs complejos",
+          "fatiga de herramientas nuevas"
+        ],
+        "signals": [
+          "valoran una demo autocontenida y guiada"
+        ],
+        "risks": [
+          "si la narrativa se siente demasiado técnica, pueden postergar la decisión"
+        ]
+      }
+    ]
+  }
+}

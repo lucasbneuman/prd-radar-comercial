@@ -37,6 +37,8 @@ El repo ya incluye un primer slice funcional del MVP:
   ficha de lead), carga de ejemplos, import de deals reales desde Brevo,
   fuentes curadas simuladas (Meet / WhatsApp / llamadas), export JSON y
   resultado.
+- `examples/crm-demo-dataset.json`: dataset versionado del mini CRM demo con
+  leads y fuentes curadas reutilizables para UI, tests y futuros informes.
 - `radar_comercial.web_cli`: servidor local para demo navegable.
 - persistencia local de corridas en `data/runs.jsonl` vía
   `radar_comercial.run_store`.
@@ -48,6 +50,8 @@ El repo ya incluye un primer slice funcional del MVP:
   resolución de contacto ligado y prefill del caso comercial dentro de la web.
 - CRM demo interno con leads propios, ficha de lead y navegación visible hacia
   el radar sin depender de un CRM externo.
+- dataset demo versionado en `examples/crm-demo-dataset.json` con leads,
+  fuentes y taxonomías reutilizables para demo y validación.
 - fuentes curadas ficticias para demos de origen alternativo: Meet, WhatsApp y
   llamadas telefónicas.
 - deploy activo en Coolify (Products / production):

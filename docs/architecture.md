@@ -41,8 +41,9 @@ lectura accionable con:
 - `src/radar_comercial/web.py`: app WSGI local con CRM demo interno (leads,
   ficha de lead y navegación hacia el radar), formulario, ejemplos, import de
   deals reales desde Brevo, fuentes curadas simuladas y export JSON.
-- `src/radar_comercial/crm_demo.py`: dataset y helpers del mini CRM demo
+- `src/radar_comercial/crm_demo.py`: carga y helpers del mini CRM demo
   interno para leads y fuentes curadas por lead.
+- `examples/crm-demo-dataset.json`: dataset versionado del CRM demo interno.
 - `src/radar_comercial/run_store.py`: persistencia local de corridas en JSONL.
 - `examples/`: casos de ejemplo repetibles para demo y validación manual.
 - `data/runs.jsonl`: historial local de corridas del radar.
