@@ -3,14 +3,28 @@ from __future__ import annotations
 import json
 from collections import Counter
 from copy import deepcopy
+from importlib import resources
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-DATASET_PATH = BASE_DIR / "examples" / "crm-demo-dataset.json"
+REPO_DATASET_PATH = BASE_DIR / "examples" / "crm-demo-dataset.json"
+PACKAGE_DATASET_RESOURCE = resources.files("radar_comercial") / "data" / "crm-demo-dataset.json"
+
+
+def _dataset_text() -> tuple[str, str]:
+    if REPO_DATASET_PATH.exists():
+        return REPO_DATASET_PATH.read_text(encoding="utf-8"), str(REPO_DATASET_PATH)
+    return PACKAGE_DATASET_RESOURCE.read_text(encoding="utf-8"), str(PACKAGE_DATASET_RESOURCE)
 
 
 def _load_dataset() -> dict:
-    return json.loads(DATASET_PATH.read_text(encoding="utf-8"))
+    content, _ = _dataset_text()
+    return json.loads(content)
+
+
+def _dataset_path() -> str:
+    _, path = _dataset_text()
+    return path
 
 
 def _load_leads() -> list[dict]:
@@ -71,7 +85,7 @@ def summarize_demo_dataset() -> dict:
         "by_stage": dict(stage_counts),
         "by_source_type": dict(source_type_counts),
         "lead_ids": [lead["id"] for lead in _sorted_leads()],
-        "dataset_path": str(DATASET_PATH),
+        "dataset_path": _dataset_path(),
     }
 
 
