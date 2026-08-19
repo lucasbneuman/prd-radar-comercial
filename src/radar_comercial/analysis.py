@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from radar_comercial.llm_provider import (
+    ReportNarrativeProvider,
+    build_llm_provider_from_env,
+    enrich_report_with_provider,
+)
 from radar_comercial.models import CommercialCase, RadarReport
 
 
@@ -76,7 +81,8 @@ def analyze_commercial_case(case: CommercialCase) -> RadarReport:
     )
 
 
-def analyze_case(case: dict) -> dict:
+def analyze_case(case: dict, llm_provider: ReportNarrativeProvider | None = None) -> dict:
     commercial_case = CommercialCase.from_dict(case)
-    report = analyze_commercial_case(commercial_case)
-    return report.to_dict()
+    report = analyze_commercial_case(commercial_case).to_dict()
+    provider = llm_provider or build_llm_provider_from_env()
+    return enrich_report_with_provider(case=case, report=report, llm_provider=provider)

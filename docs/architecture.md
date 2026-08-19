@@ -45,6 +45,8 @@ lectura accionable con:
 - `src/radar_comercial/crm_demo.py`: carga y helpers del mini CRM demo
   interno para leads y fuentes curadas por lead.
 - `examples/crm-demo-dataset.json`: dataset versionado del CRM demo interno.
+- `src/radar_comercial/llm_provider.py`: providers configurables para
+  enriquecer `summary`/`rationale` con fallback seguro.
 - `src/radar_comercial/run_store.py`: persistencia local de corridas en JSONL.
 - `examples/`: casos de ejemplo repetibles para demo y validación manual.
 - `data/runs.jsonl`: historial local de corridas del radar.
@@ -68,6 +70,9 @@ El repo ya tiene una primera cadena completa local:
    import de deals reales desde Brevo, fuentes curadas para Meet / WhatsApp /
    llamadas, export JSON, historial reciente e informes navegables por lead o
    por fuente (`view=report`).
+7. `llm_provider.py` permite enriquecer `summary` y `rationale` con providers
+   OpenAI-compatible configurados por entorno, con fallback silencioso al motor
+   rule-based cuando falta config o la llamada falla.
 
 ## Evolución esperada
 

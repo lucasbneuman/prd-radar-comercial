@@ -30,13 +30,13 @@ El repo ya incluye un primer slice funcional del MVP:
 - `radar_comercial.analysis.analyze_commercial_case`: motor principal sobre el
   modelo de dominio.
 - `radar_comercial.analysis.analyze_case`: wrapper compatible con dicts para el
-  slice inicial.
+  slice inicial y capaz de enriquecer narrativa vía provider LLM configurable.
 - `radar_comercial.presenter.render_radar_report_markdown`: presentación del
   output tipado.
 - `radar_comercial.web.app`: mini interfaz web con CRM demo interno (leads,
   ficha de lead e informes general/por fuente), carga de ejemplos, import de
   deals reales desde Brevo, fuentes curadas simuladas (Meet / WhatsApp /
-  llamadas), export JSON y resultado.
+  llamadas), export JSON y resultado, con narrativa LLM opcional por env.
 - `examples/crm-demo-dataset.json`: dataset versionado del mini CRM demo con
   leads y fuentes curadas reutilizables para UI, tests y futuros informes.
 - `radar_comercial.web_cli`: servidor local para demo navegable.
@@ -46,6 +46,9 @@ El repo ya incluye un primer slice funcional del MVP:
   `rationale` y bandas `baja` / `media` / `alta` / `critica`.
 - `python -m radar_comercial.demo_cli`: recibe un caso JSON por `stdin` o
   `--input`, puede persistir historial y emitir Markdown o JSON.
+- narrativa LLM opcional por entorno (`RADAR_LLM_PROVIDER`, `DEEPSEEK_API_KEY`
+  o config OpenAI-compatible) para enriquecer `summary` y `rationale` sin tocar
+  el scoring rule-based.
 - integración CRM real con Brevo mediante `BREVO_API_KEY`: lectura de deals,
   resolución de contacto ligado y prefill del caso comercial dentro de la web.
 - CRM demo interno con leads propios, ficha de lead y navegación visible hacia
@@ -78,6 +81,30 @@ python -m compileall src
 python -m unittest discover -s tests
 ```
 
+## Configuración opcional de narrativa LLM
+
+### DeepSeek
+
+```bash
+export RADAR_LLM_PROVIDER=deepseek
+export DEEPSEEK_API_KEY=tu_api_key
+# opcional
+export DEEPSEEK_MODEL=deepseek-chat
+export DEEPSEEK_BASE_URL=https://api.deepseek.com
+```
+
+### OpenAI-compatible genérico
+
+```bash
+export RADAR_LLM_PROVIDER=openai-compatible
+export RADAR_LLM_API_KEY=tu_api_key
+export RADAR_LLM_BASE_URL=https://tu-endpoint/v1
+export RADAR_LLM_MODEL=tu-modelo
+```
+
+Si no hay configuración válida o la llamada falla, Radar mantiene el output
+rule-based y no rompe la demo.
+
 ## Smoke demoable
 
 ```bash
@@ -88,6 +115,8 @@ PYTHONPATH=src python3 -m radar_comercial.demo_cli --input examples/enterprise-u
 PYTHONPATH=src python3 -m radar_comercial.web_cli --host 127.0.0.1 --port 8008
 curl 'http://127.0.0.1:8008/?lead_id=lead-apex'
 curl 'http://127.0.0.1:8008/?lead_id=lead-apex&source_id=src-apex-whatsapp'
+curl 'http://127.0.0.1:8008/?lead_id=lead-apex&view=report'
+curl 'http://127.0.0.1:8008/?lead_id=lead-apex&source_id=src-apex-whatsapp&view=report'
 curl 'http://127.0.0.1:8008/?brevo_deal=6a76213b0dd08f62ca584988'
 curl 'http://127.0.0.1:8008/?curated_source=meet_discovery'
 ```

@@ -289,6 +289,11 @@ def _render_report(report: dict | None, case: dict | None = None, report_title: 
     breakdown = "".join(f"<li>{escape(item)}</li>" for item in report["score_breakdown"])
     export_json = escape(json.dumps(report, ensure_ascii=False, indent=2))
     source_label = escape(report.get("source_label", case.get("source_label", "Carga manual") if case else "Carga manual"))
+    llm_html = ""
+    if report.get("llm_provider"):
+        model = escape(report.get("llm_model", ""))
+        provider = escape(report.get("llm_provider", ""))
+        llm_html = f"<p><strong>Narrativa LLM:</strong> {provider} · <code>{model}</code></p>"
 
     title_html = f'<p class="muted">{escape(report_title)}</p>' if report_title else ''
 
@@ -297,6 +302,7 @@ def _render_report(report: dict | None, case: dict | None = None, report_title: 
       <h2>Resultado</h2>
       {title_html}
       <p><strong>Origen:</strong> {source_label}</p>
+      {llm_html}
       <p><strong>Resumen:</strong> {escape(report['summary'])}</p>
       <p><strong>Prioridad:</strong> {escape(report['priority'])}</p>
       <p><strong>Tipo de caso:</strong> <code>{escape(report['case_type'])}</code></p>
