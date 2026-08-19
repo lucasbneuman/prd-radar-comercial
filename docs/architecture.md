@@ -39,8 +39,9 @@ lectura accionable con:
 - `src/radar_comercial/presenter.py`: presentación Markdown del radar.
 - `src/radar_comercial/demo_cli.py`: entrada CLI para smoke/demo local y persistencia opcional.
 - `src/radar_comercial/web.py`: app WSGI local con CRM demo interno (leads,
-  ficha de lead y navegación hacia el radar), formulario, ejemplos, import de
-  deals reales desde Brevo, fuentes curadas simuladas y export JSON.
+  ficha de lead, informes general/por fuente y navegación hacia el radar),
+  formulario, ejemplos, import de deals reales desde Brevo, fuentes curadas
+  simuladas y export JSON.
 - `src/radar_comercial/crm_demo.py`: carga y helpers del mini CRM demo
   interno para leads y fuentes curadas por lead.
 - `examples/crm-demo-dataset.json`: dataset versionado del CRM demo interno.
@@ -65,7 +66,8 @@ El repo ya tiene una primera cadena completa local:
    locales en `data/runs.jsonl`.
 6. `web.py` expone una interfaz con CRM demo interno, selector de ejemplos,
    import de deals reales desde Brevo, fuentes curadas para Meet / WhatsApp /
-   llamadas, export JSON e historial reciente de corridas.
+   llamadas, export JSON, historial reciente e informes navegables por lead o
+   por fuente (`view=report`).
 
 ## Evolución esperada
 

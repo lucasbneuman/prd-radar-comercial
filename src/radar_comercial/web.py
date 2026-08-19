@@ -129,7 +129,7 @@ def _render_curated_source_options(selected: str | None) -> list[str]:
     return rendered
 
 
-def _render_crm_demo(selected_lead_id: str | None = None, selected_source_id: str | None = None) -> str:
+def _render_crm_demo(selected_lead_id: str | None = None, selected_source_id: str | None = None, selected_view: str | None = None) -> str:
     selected_lead = get_demo_lead(selected_lead_id)
     selected_source = get_lead_source(selected_lead_id, selected_source_id)
     source_items = list_lead_sources(selected_lead_id)
@@ -156,7 +156,7 @@ def _render_crm_demo(selected_lead_id: str | None = None, selected_source_id: st
         for source in source_items:
             source_links.append(
                 "<li>"
-                f"<a href='/?lead_id={escape(selected_lead['id'])}&source_id={escape(source['id'])}'>"
+                f"<a href='/?lead_id={escape(selected_lead['id'])}&source_id={escape(source['id'])}&view=report'>"
                 f"{escape(source['source_type'])} · {escape(source['label'])}</a>"
                 f"<br><span class='muted'>{escape(source['summary'])}</span>"
                 "</li>"
@@ -170,13 +170,18 @@ def _render_crm_demo(selected_lead_id: str | None = None, selected_source_id: st
         <p><strong>Objetivo:</strong> {escape(selected_lead['objective'])}</p>
         <h4>Fuentes disponibles</h4>
         <ul class='link-list'>{''.join(source_links)}</ul>
-        <p><a href='/?lead_id={escape(selected_lead['id'])}'>Ver informe general</a></p>
+        <p><a href='/?lead_id={escape(selected_lead['id'])}&view=report'>Ver informe general</a></p>
         """
         if selected_source:
             detail += f"""
             <hr>
             <h4>Fuente enfocada: {escape(selected_source['source_type'])}</h4>
             <p>{escape(selected_source['summary'])}</p>
+            """
+        if selected_view == "report":
+            detail += f"""
+            <hr>
+            <p class='muted'>{'Informe por fuente' if selected_source else 'Informe general del lead'}</p>
             """
 
     return f"""
@@ -267,7 +272,7 @@ def _render_recent_runs() -> str:
     return "<ul>" + "".join(items) + "</ul>"
 
 
-def _render_report(report: dict | None, case: dict | None = None) -> str:
+def _render_report(report: dict | None, case: dict | None = None, report_title: str | None = None) -> str:
     if not report:
         return f"""
         <section class=\"card\">
@@ -285,9 +290,12 @@ def _render_report(report: dict | None, case: dict | None = None) -> str:
     export_json = escape(json.dumps(report, ensure_ascii=False, indent=2))
     source_label = escape(report.get("source_label", case.get("source_label", "Carga manual") if case else "Carga manual"))
 
+    title_html = f'<p class="muted">{escape(report_title)}</p>' if report_title else ''
+
     return f"""
     <section class=\"card\">
       <h2>Resultado</h2>
+      {title_html}
       <p><strong>Origen:</strong> {source_label}</p>
       <p><strong>Resumen:</strong> {escape(report['summary'])}</p>
       <p><strong>Prioridad:</strong> {escape(report['priority'])}</p>
@@ -325,6 +333,7 @@ def app(environ, start_response):
     selected_curated_source = query.get("curated_source", [None])[0]
     selected_lead_id = query.get("lead_id", [None])[0]
     selected_source_id = query.get("source_id", [None])[0]
+    selected_view = query.get("view", [None])[0]
 
     case = _load_example_case(selected_example)
     if selected_lead_id:
@@ -334,6 +343,13 @@ def app(environ, start_response):
     if selected_curated_source:
         case = load_curated_case(selected_curated_source) or case
     report = None
+    report_title = None
+
+    if method == "GET" and selected_view == "report" and case:
+        report = analyze_case(case)
+        report["source_kind"] = case.get("source_kind", "manual")
+        report["source_label"] = case.get("source_label", "Carga manual")
+        report_title = "Informe por fuente" if selected_source_id else "Informe general del lead"
 
     if method == "POST":
         length = int(environ.get("CONTENT_LENGTH") or 0)
@@ -352,14 +368,14 @@ def app(environ, start_response):
             return [payload]
 
     html = HTML_TEMPLATE.format(
-        content=_render_crm_demo(selected_lead_id, selected_source_id)
+        content=_render_crm_demo(selected_lead_id, selected_source_id, selected_view)
         + _render_form(
             case,
             selected_example=selected_example,
             selected_brevo_deal=selected_brevo_deal,
             selected_curated_source=selected_curated_source,
         )
-        + _render_report(report, case)
+        + _render_report(report, case, report_title)
     )
     payload = html.encode("utf-8")
     start_response("200 OK", [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(payload)))])

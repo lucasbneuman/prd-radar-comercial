@@ -33,10 +33,10 @@ El repo ya incluye un primer slice funcional del MVP:
   slice inicial.
 - `radar_comercial.presenter.render_radar_report_markdown`: presentación del
   output tipado.
-- `radar_comercial.web.app`: mini interfaz web con CRM demo interno (leads y
-  ficha de lead), carga de ejemplos, import de deals reales desde Brevo,
-  fuentes curadas simuladas (Meet / WhatsApp / llamadas), export JSON y
-  resultado.
+- `radar_comercial.web.app`: mini interfaz web con CRM demo interno (leads,
+  ficha de lead e informes general/por fuente), carga de ejemplos, import de
+  deals reales desde Brevo, fuentes curadas simuladas (Meet / WhatsApp /
+  llamadas), export JSON y resultado.
 - `examples/crm-demo-dataset.json`: dataset versionado del mini CRM demo con
   leads y fuentes curadas reutilizables para UI, tests y futuros informes.
 - `radar_comercial.web_cli`: servidor local para demo navegable.
@@ -50,6 +50,8 @@ El repo ya incluye un primer slice funcional del MVP:
   resolución de contacto ligado y prefill del caso comercial dentro de la web.
 - CRM demo interno con leads propios, ficha de lead y navegación visible hacia
   el radar sin depender de un CRM externo.
+- informes navegables desde el CRM demo: general por lead y por fuente
+  específica con `view=report`.
 - dataset demo versionado en `examples/crm-demo-dataset.json` con leads,
   fuentes y taxonomías reutilizables para demo y validación.
 - fuentes curadas ficticias para demos de origen alternativo: Meet, WhatsApp y

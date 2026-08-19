@@ -54,6 +54,24 @@ class CrmDemoViewTest(unittest.TestCase):
         self.assertIn("pidió propuesta aterrizada para 3 vendedores", response)
         self.assertIn('value="Apex Analytics"', response)
 
+    def test_get_can_render_general_report_from_demo_lead(self):
+        status, headers, response = self.run_app(query_string="lead_id=lead-apex&view=report")
+
+        self.assertEqual(status, "200 OK")
+        self.assertIn("Informe general del lead", response)
+        self.assertIn("Resultado", response)
+        self.assertIn("CRM demo · Apex Analytics", response)
+        self.assertIn("Prioridad:", response)
+
+    def test_get_can_render_source_report_from_demo_lead(self):
+        status, headers, response = self.run_app(query_string="lead_id=lead-apex&source_id=src-apex-whatsapp&view=report")
+
+        self.assertEqual(status, "200 OK")
+        self.assertIn("Informe por fuente", response)
+        self.assertIn("CRM demo · WhatsApp · Apex Analytics", response)
+        self.assertIn("WhatsApp", response)
+        self.assertIn("Prioridad:", response)
+
 
 if __name__ == "__main__":
     unittest.main()
